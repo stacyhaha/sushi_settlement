@@ -1,5 +1,9 @@
 Flask
 Pillow==10.0.1
+selectivesearch
+tensorflow
+
+
 pyheif
 imagehash
 exifread
