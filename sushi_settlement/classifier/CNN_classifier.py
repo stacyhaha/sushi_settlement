@@ -52,7 +52,7 @@ class_label_to_name = {
     '37': 'Shako_Nigiri',
     '38': 'Shirasu',
     '39': 'Shiroebi',
-    '40': 'Tai_&_Madai',
+    '40': 'Tai_&_Madai',    
     '41': 'Tako_Nigiri',
     '42': 'Tamagoyaki',
     '43': 'Tekkamaki',

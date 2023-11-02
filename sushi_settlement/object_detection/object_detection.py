@@ -28,6 +28,7 @@ class ObjectDetection:
         detect object
         return the object location
         """
+        origin_image_size = image.size
         image = image.resize((500, 400))
         img_array = np.array(image)
         img_array[:, :, 0] = img_array[:, :, 0] // self.reduce_color * self.reduce_color
@@ -40,9 +41,8 @@ class ObjectDetection:
 
         bgr_image = cv2.cvtColor(reduced_color_array, cv2.COLOR_RGB2BGR)
        
-        
         start = time.time()
-        img_lbl, regions = ss.selective_search(bgr_image, scale=120, sigma=5, min_size=800)
+        img_lbl, regions = ss.selective_search(bgr_image, scale=300, sigma=4.5, min_size=600)
         
         regions = list(set([i["rect"] for i in regions]))
         end = time.time()
@@ -50,16 +50,19 @@ class ObjectDetection:
         logger.info("[INFO] selective search took {:.4f} seconds".format(end - start))
 
         # post_process
-        regions = [(i[0], i[1], i[0]+i[2], i[1]+i[3]) for i in regions]
+        if len(regions) > 1:
+            regions = list(filter(lambda x: x[2] <= 200 and x[3] <= 200, regions))
+        width_ratio = origin_image_size[0] * 1.0 / 500
+        height_ratio = origin_image_size[1] * 1.0/ 400
+        regions = [(int(i[0] * width_ratio), int(i[1]*height_ratio), int((i[0]+i[2])*width_ratio), int((i[1]+i[3])*height_ratio)) for i in regions]
         logger.info("[INFO] after filter, regions num is {}".format(len(regions)))
         return regions
 
 
 if __name__ == "__main__":
     od = ObjectDetection()
-    image = Image.open("/Users/stacy/iss/5002project/backend/tests/images/Shako_Nigiri.jpg")
-    #image = Image.open("tests/images/sushi.png")
-    image = image.resize((500, 400))
+    #image = Image.open("/Users/stacy/iss/5002project/backend/tests/images/Shako_Nigiri.jpg")
+    image = Image.open("tests/images/sushi.png")
     regions = od.predict(image)
 
     draw = ImageDraw.Draw(image)

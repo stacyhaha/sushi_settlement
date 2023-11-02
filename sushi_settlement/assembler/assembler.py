@@ -1,4 +1,9 @@
-class ModelPredictor:
+import logging 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
+class Assembler:
     def __init__(self):
         self.cnn_authority = 0.25
         self.mobilenet_authority = 0.75
@@ -49,9 +54,7 @@ if __name__ == "__main__":
         ]
     }
 
-
-
-    predictor = ModelPredictor()
+    predictor = Assembler()
     results = predictor.predict(model_res)
 
     # Print the results
