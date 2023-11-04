@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 -------------------------------------------------
-   File Name： MobileNet_classifier.py
+   File Name： VGG19_classifier.py
    Author :
    time：
    last edit time:
-   Description :   mobilenet classifier
+   Description :   VGG19 classifier
 -------------------------------------------------
 """
 import tensorflow as tf
@@ -65,15 +65,10 @@ class_label_to_name = {
     '49': 'Uni'
 }
 
-class MobileNetClassifier:
+class VGG19Classifier:
     def __init__(self, model_path):
-        # 加载 MobileNet 模型
+        # 加载 VGG19 模型
         self.model = tf.keras.models.load_model(model_path)
-        for layer in self.model.layers:
-            if isinstance(layer, tf.keras.layers.Dropout):
-                layer.training = False
-            if isinstance(layer, tf.keras.layers.BatchNormalization):
-                layer.trainable = False
         return
 
     def predict(self, img, top_n=3):
@@ -81,7 +76,7 @@ class MobileNetClassifier:
         if img.mode == 'RGBA':
             img = img.convert('RGB')
 
-        img = img.resize((224, 224))  # 调整图像大小以符合 MobileNet 的输入要求
+        img = img.resize((224, 224))
         img = np.asarray(img)
         #img = img / 255.0  # 归一化像素值
         img = np.expand_dims(img, axis=0)  # 添加批处理维度
@@ -95,18 +90,9 @@ class MobileNetClassifier:
         top_labels = [str(i) for i in top_indices]
 
         # 返回分类结果
-        # results = [{"label": label, "prob": float(prob)} for label, prob in zip(top_labels, top_probabilities)]
         results = [{"label": class_label_to_name[label], "prob": float(prob)} for label, prob in zip(top_labels, top_probabilities)]
         results.sort(key=lambda x: x["prob"], reverse=True)
+
         return results
 
 
-if __name__ == "__main__":
-    # 创建 MobileNetClassifier 实例并加载模型
-    model_path = "sushi_settlement/models/mobilenet_sushi.h5"
-    classifier = MobileNetClassifier(model_path)
-
-    image = Image.open("/Users/stacy/iss/5002project/backend/tests/images/Temarizushi.jpg")
-    top_n = 3  # 获取前三个类别的概率
-    results = classifier.predict(image, top_n)
-    print(results)

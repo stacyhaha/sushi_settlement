@@ -13,56 +13,56 @@ import tensorflow as tf
 import numpy as np
 
 class_label_to_name = {
-    '1': 'Abokado_Maki',
-    '2': 'Aji',
-    '3': 'Akagai',
-    '4': 'Akami',
-    '5': 'Amaebi',
-    '6': 'Ankimo',
-    '7': 'Aoyagi',
-    '8': 'Awabi',
-    '9': 'Battera_Sushi',
-    '10': 'California_Roll',
-    '11': 'Daikon_Oshinko_Maki',
-    '12': 'Ebi_Nigiri',
-    '13': 'Funazushi',
-    '14': 'Futomaki',
-    '15': 'Gyu_Nigiri',
-    '16': 'Hamaguri',
-    '17': 'Hamo',
-    '18': 'Hirame_&_Karei',
-    '19': 'Hokkigai',
-    '20': 'Hotate_Nigiri',
-    '21': 'Ika_Nigiri',
-    '22': 'Ikura_Gunkan',
-    '23': 'Inarizushi',
-    '24': 'Kamaboko_Kani',
-    '25': 'Kanpyomaki',
-    '26': 'Kappa_Maki',
-    '27': 'Kazunoko',
-    '28': 'Kohada',
-    '29': 'Kuruma',
-    '30': 'Meharizushi',
-    '31': 'Mirugai',
-    '32': 'Natto_Maki',
-    '33': 'Negitoro',
-    '34': 'Saba',
-    '35': 'Sake_Nigiri',
-    '36': 'Sayori',
-    '37': 'Shako_Nigiri',
-    '38': 'Shirasu',
-    '39': 'Shiroebi',
-    '40': 'Tai_&_Madai',    
-    '41': 'Tako_Nigiri',
-    '42': 'Tamagoyaki',
-    '43': 'Tekkamaki',
-    '44': 'Temaki',
-    '45': 'Temarizushi',
-    '46': 'Tobiko_Nigiri',
-    '47': 'Torigai',
-    '48': 'Toro',
-    '49': 'Unagi',
-    '50': 'Uni'
+    '0': 'Abokado_Maki',
+    '1': 'Aji',
+    '2': 'Akagai',
+    '3': 'Akami',
+    '4': 'Amaebi',
+    '5': 'Ankimo',
+    '6': 'Aoyagi',
+    '7': 'Awabi',
+    '8': 'Battera_Sushi',
+    '9': 'California_Roll',
+    '10': 'Daikon_Oshinko_Maki',
+    '11': 'Ebi_Nigiri',
+    '12': 'Funazushi',
+    '13': 'Futomaki',
+    '14': 'Gyu_Nigiri',
+    '15': 'Hamaguri',
+    '16': 'Hamo',
+    '17': 'Hirame_&_Karei',
+    '18': 'Hokkigai',
+    '19': 'Hotate_Nigiri',
+    '20': 'Ika_Nigiri',
+    '21': 'Ikura_Gunkan',
+    '22': 'Inarizushi',
+    '23': 'Kamaboko_Kani',
+    '24': 'Kanpyomaki',
+    '25': 'Kappa_Maki',
+    '26': 'Kazunoko',
+    '27': 'Kohada',
+    '28': 'Kuruma',
+    '29': 'Meharizushi',
+    '30': 'Mirugai',
+    '31': 'Natto_Maki',
+    '32': 'Negitoro',
+    '33': 'Saba',
+    '34': 'Sake_Nigiri',
+    '35': 'Sayori',
+    '36': 'Shako_Nigiri',
+    '37': 'Shirasu',
+    '38': 'Shiroebi',
+    '39': 'Tai_&_Madai',
+    '40': 'Tako_Nigiri',
+    '41': 'Tamagoyaki',
+    '42': 'Tekkamaki',
+    '43': 'Temaki',
+    '44': 'Temarizushi',
+    '45': 'Tobiko_Nigiri',
+    '46': 'Torigai',
+    '47': 'Toro',
+    '48': 'Unagi',
+    '49': 'Uni'
 }
 
 class CNNClassifier:
@@ -78,7 +78,7 @@ class CNNClassifier:
 
         img = img.resize((224, 224))
         img = np.asarray(img)
-        img = img / 255.0  # 归一化像素值
+        #img = img / 255.0  # 归一化像素值
         img = np.expand_dims(img, axis=0)  # 添加批处理维度
 
         # 使用模型进行预测
@@ -92,16 +92,16 @@ class CNNClassifier:
         # 返回分类结果
         # results = [{"label": label, "prob": float(prob)} for label, prob in zip(top_labels, top_probabilities)]
         results = [{"label": class_label_to_name[label], "prob": float(prob)} for label, prob in zip(top_labels, top_probabilities)]
-
+        results.sort(key=lambda x: x["prob"], reverse=True)
         return results
 
 
 if __name__ == "__main__":
     # 创建 MobileNetClassifier 实例并加载模型
-    model_path = "sushi_settlement/models/mobilenet_sushi.h5"
+    model_path = "sushi_settlement/models/cnn_sushi.h5"
     classifier = CNNClassifier(model_path)
 
-    image = Image.open("/Users/stacy/iss/5002project/backend/tests/images/Shako_Nigiri.jpg")
+    image = Image.open("/Users/stacy/iss/5002project/backend/tests/images/a.jpg")
     top_n = 3  # 获取前三个类别的概率
     results = classifier.predict(image, top_n)
     print(results)

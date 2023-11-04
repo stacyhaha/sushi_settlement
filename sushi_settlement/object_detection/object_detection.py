@@ -42,7 +42,7 @@ class ObjectDetection:
         bgr_image = cv2.cvtColor(reduced_color_array, cv2.COLOR_RGB2BGR)
        
         start = time.time()
-        img_lbl, regions = ss.selective_search(bgr_image, scale=300, sigma=4.5, min_size=600)
+        img_lbl, regions = ss.selective_search(bgr_image, scale=500, sigma=4.5, min_size=800)
         
         regions = list(set([i["rect"] for i in regions]))
         end = time.time()

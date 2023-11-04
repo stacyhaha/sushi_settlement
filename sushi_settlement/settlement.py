@@ -10,18 +10,20 @@
 """
 import os
 import logging
+import pandas as pd
 from PIL import Image
 from .object_detection.object_detection import ObjectDetection
 from .classifier.CNN_classifier import CNNClassifier
 from .classifier.MobileNet_classifier import MobileNetClassifier
 from .assembler.assembler import Assembler
 from .visualizer.visualizer import Visualizer
+from .classifier.VGG19_classifier import VGG19Classifier
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 class Settlement:
-    def __init__(self, workspace, CNN_model_path, MobileNet_model_path, font_path):
+    def __init__(self, workspace, CNN_model_path, MobileNet_model_path, VGG19_model_path, font_path):
         self.workspace = workspace
         if not os.path.exists(workspace):
             os.makedirs(workspace)
@@ -29,6 +31,7 @@ class Settlement:
         self.object_detection = ObjectDetection()
         self.CNN_classifier = CNNClassifier(CNN_model_path)
         self.MobileNet_classifier = MobileNetClassifier(MobileNet_model_path)
+        self.VGG19_classifier = VGG19Classifier(VGG19_model_path)
         self.assembler = Assembler()
         self.visualizer = Visualizer(font_path)
         logger.info("initiate succeessfully")
@@ -42,19 +45,26 @@ class Settlement:
         for sub_loc in locations:
             assemble_res = self.model_predict(image, sub_loc)
             res[tuple(sub_loc)] = assemble_res
-        
         res = self.post_process_model_res(res)
         nms_res = self.nms(res)
         logger.info("[INOF] after nms the region num is {}".format(len(nms_res)))
 
         image_detected = self.visualizer.predict(image, nms_res)
         image_detected_path = image_path.split(".")[0] + "_detected.jpg"
+        image_detected = image_detected.convert("RGB")
         image_detected.save(image_detected_path)
         logger.info(f"[INFO] save detect image in {image_detected_path}")
+        
+        table_res = self.postprocess_res(nms_res)
+        return {"table":table_res, "image_path": image_detected_path}
 
     
-    def postprocess_res(self, res):
-        return
+    def postprocess_res(self, nms_res):
+        if not nms_res:
+            return []
+        count_res = pd.DataFrame(nms_res).iloc[:,-1].value_counts().to_dict()
+        res = [{"Class":c, "Number":v} for c, v in count_res.items()]
+        return res
 
 
 
@@ -63,9 +73,15 @@ class Settlement:
         croped_img = image.crop(sub_loc)
         cnn_res = self.CNN_classifier.predict(croped_img)
         mobilenet_res = self.MobileNet_classifier.predict(croped_img)
+        vgg_res = self.VGG19_classifier.predict(croped_img)
         model_res["cnn"] = cnn_res
+        logger.info(f"cnn result {cnn_res}")
         model_res["mobilenet"] = mobilenet_res
+        logger.info(f"mobilenet result {mobilenet_res}")
+        model_res["VGG"] = vgg_res
+        logger.info(f"vgg result {vgg_res}")
         assemble_res = self.assembler.predict(model_res)
+        logger.info(f"assemble res {assemble_res}")
         return assemble_res
     
     def post_process_model_res(self, asssemble_res):
@@ -103,7 +119,7 @@ class Settlement:
             return max(iou, 0.5)
         return iou
     
-    def nms(self, boxes, conf_threshold=0.3, iou_threshold=0.5):
+    def nms(self, boxes, conf_threshold=0.2, iou_threshold=0.4):
         boxes = [(*key, value["prob"], value["label"]) for key, value in boxes.items()]
         bbox_list = []
         
@@ -126,7 +142,8 @@ if __name__ == "__main__":
         workspace = "/Users/stacy/iss/workspace2",
         CNN_model_path = r'/Users/stacy/iss/5002project/backend/sushi_settlement/models/cnn_sushi.h5',
         MobileNet_model_path = r'/Users/stacy/iss/5002project/backend/sushi_settlement/models/mobilenet_sushi.h5',
-        font_path="/Users/stacy/iss/5002project/backend/UNSII-2.ttf"
+        VGG19_model_path = r"/Users/stacy/iss/5002project/backend/sushi_settlement/models/VGG_sushi.h5",
+        font_path="/Users/stacy/iss/5002project/backend/sushi_settlement/UNSII-2.ttf"
     )
     image_path = "/Users/stacy/iss/5002project/backend/tests/images/sushi.png"
     settlement.predict(image_path)
